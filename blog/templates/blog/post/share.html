@@ -11,13 +11,13 @@
     {% else %}
         <h1>Share "{{ post.title }}" by e-mail</h1>
         <form action="." method="post">
-            {{ form.as_p }}
-            <!-- {% for field in form %}
+            <!-- {{ form.as_p }} -->
+            {% for field in form %}
                 <div>
                     {{ field.errors }}
                     {{ field.label_tag }} {{ field }}
                 </div>
-            {% endfor %}     -->
+            {% endfor %}    
             {% csrf_token %}
             <!-- CSRF => Cross Site Request Forgery -->
             <input type="submit" value="Send e-mail">

@@ -14,4 +14,36 @@
             Share this post
         </a>
     </p>
+    {% with comments.count as total_comments %}
+    <!-- Note that Django template does't uses paranthesis for calling methods -->
+    <!-- The "with" keyword helps us to assign value to a new variable until "endwith" block comes -->
+    <!-- The "with" keyword also helps in preventing the hitting the db multiple times and using time-consuming complex queries -->
+        <h2>
+            {{ total_comments }} comment{{ total_comments|pluralize }}
+            <!-- The "pluralize" keyword helps to display a plural suffix for the word comment, depending on the total_comments value-->
+        </h2>
+    {% endwith %}
+
+    {% for comment in comments %}
+        <div class="comment">
+            <p class="info">
+                Comment {{ forloop.counter }} by {{ comment.name }}
+                {{ comment.created }}
+            </p>
+            {{ comment.body|linebreaks }}
+        </div>
+        {% empty %}
+        <!-- Below message is displayed if the comments list is empty -->
+        <p>There are no comments yet.</p>
+    {% endfor %}
+    {% if new_comment %}
+        <h2>Your comment has been added.</h2>
+    {% else %}
+        <h2>Add a new comment</h2>
+        <form action="." method="post">
+            {{ comment_form.as_p }}
+            {% csrf_token %}
+            <p><input type="submit" value="Add comment"></p>
+        </form>
+    {% endif %}    
 {% endblock %}

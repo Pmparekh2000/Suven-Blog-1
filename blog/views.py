@@ -2,6 +2,8 @@ from django.shortcuts import render, get_object_or_404
 from .models import Post
 from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
 from django.views.generic import ListView
+from .forms import EmailPostForm
+from django.core.mail import send_mail
 
 # Create your views here.
 
@@ -30,3 +32,30 @@ def post_list(request):
 def post_detail(request, year, month, day, post):
     post = get_object_or_404(Post, slug=post, status='published', publish__year=year, publish__month=month, publish__day=day)
     return render(request, 'blog/post/detail.html', {'post': post})
+
+def post_share(request, post_id):
+    # Retrive post by id
+    post = get_object_or_404(Post, id=post_id, status='published')
+    sent = False
+
+    # By the following branching, we use the same view to show the form and processing the submitted data
+    if request.method == 'POST':
+        # Form was submitted
+        form = EmailPostForm(request.POST)
+        if form.is_valid():
+            # Form field passed validation
+            cd = form.cleaned_data
+            # cleaned_data is a dictionary of the form fields which are valid, invalid fields are not included
+            # ... logic for sending email is below
+            post_url = request.build_absolute_uri(post.get_absolute_url())
+            # We use request.build_absolute_uri() to build an absolute path url in the email to redirect it to the post
+            subject = '{} ({}) recommends you reading "{}"'.format(cd['name'], cd['email'], post.title)
+            message = 'Read "{}" at {}\n\n{}\'s comments:{}'.format(post.title, post_url, cd['name'], cd['comments'])
+            send_mail(subject, message, 'admin@myblog.com', [cd['to']])
+            # Above method is used to send the email
+            sent = True 
+    else:
+        # Form was not submitted and we need to display the empty form
+        form = EmailPostForm()
+    return render(request, 'blog/post/share.html', {'post': post, 'form': form, 'sent': sent})    
+    # The return statement will show the form either filled or empty depending on the validation.
